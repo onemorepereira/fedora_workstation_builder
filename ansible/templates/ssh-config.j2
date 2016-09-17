@@ -1,0 +1,20 @@
+Host *
+   StrictHostKeyChecking no
+   UserKnownHostsFile=/dev/null
+   IdentityFile ~/.ssh/{{ default_identity_key_file }}
+
+{% for bastion in bastions %}
+Host {{ bastion.host_mask }}
+  ProxyCommand ssh -W %h:%p {{ bastion.host_name }}
+  IdentityFile ~/.ssh/{{ bastion.private_key }}
+
+Host {{ bastion.host_name }}
+  Hostname {{ bastion.host_name }}
+  User {{ bastion.user_name }}
+  IdentityFile ~/.ssh/{{ bastion.private_key }}
+  ForwardAgent yes
+  ControlMaster auto
+  ControlPath ~/.ssh/ansible-%r@%h:%p
+  ControlPersist 5m
+
+{% endfor %}

@@ -1,0 +1,12 @@
+[user]
+        email = {{ sys_user_email | default('henchman@random.task') }}
+        name = {{ git_nickname | default('random_task') }}
+[alias]
+        lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+        br = branch
+        co = checkout
+        ci = commit
+        st = status
+        hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short
+[push]
+        default = simple

@@ -1,0 +1,2 @@
+- bastions:
+  - {host_mask: 10.1.*.*, host_name: 8.8.10.10,   private_key: id_rsa,  user_name: ansible}

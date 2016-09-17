@@ -1,0 +1,242 @@
+---
+- hosts: localhost
+  connection: local
+  become: true
+  become_user: root
+  remote_user: root
+  become_method: sudo
+
+####### IDEAS ######################################################################
+# INSTALL autokey & define custom key-bindings
+# INSTALL gTile
+# INSTALL http://skilion.github.io/onedrive/
+# DEFINE shutter custom keymappings
+# READ: https://github.com/skilion/onedrive
+# COMPLETE: Installation of OneDrive client
+# REQUISITE: ENSURE python2-dnf IS INSTALLED
+####################################################################################
+
+####### DEFINING VARIABLES AND SUCH ################################################
+  vars_files:
+    - ../vars/ssh-tunneling.yml
+    - ../vars/code-repo-lists.yml
+
+########### BASIC CONFIGURATION (basic_setup) ######################################
+  tasks:
+    - block:
+      - name: Install libselinux-python
+        dnf:
+          name: libselinux-python
+          state: present
+
+      - name: Ensure the local system has a proper hostname
+        hostname: name="fedora-{{ 999999 | random }}"
+        when: "'fedora-' not in ansible_hostname"
+
+      - name: Add management public key to target systems
+        authorized_key: 
+          user: root
+          key: "{{ public_key_value }}"
+        when: public_key_value is defined
+  
+      - name: Import the encrypted private keys as a variable
+        include_vars: ../vars/vault/secrets.yaml
+        no_log: true
+  
+      - name: Ensure there is an .ssh directory
+        file:
+          path: "/home/{{ sys_user }}/.ssh"
+          state: directory
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}" 
+          mode: 0700
+  
+      - name: Make sure our private keys are on the system
+        copy:
+          content: "{{ item.value.key_value }}"
+          dest: "/home/{{ sys_user }}/.ssh/{{ item.value.key_name }}"
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+          mode: 0600
+        no_log: true
+        with_dict: "{{ keys }}"
+  
+      - name: Ensure local system ssh-configuration is up to date
+        template:
+          dest: "/home/{{ sys_user }}/.ssh/config"
+          src: ../templates/ssh-config.j2
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+          mode: 0644
+
+      when: basic_setup
+
+########### INITIAL PACKAGE UPDATES AND INSTALLS (basic_updates) ###################
+    - block:
+      - name: Make sure base-system packages are up to date
+        dnf:
+          name: "*"
+          state: latest
+        register: system_update
+
+      - name: Restart the machine
+        shell: sleep 2 && shutdown -r now "Ansible triggered restart"
+        async: 1
+        poll: 0
+        ignore_errors: yes
+        when: reboot and system_update.changed
+
+      - name: Make sure local system has basic packages installed and up to date
+        dnf:
+          name: "{{ item }}"
+          state: latest
+        with_items: "{{ dnf_basic }}"
+
+      - name: Ensure extra RPM repos are up to date
+        copy:
+          src: "{{ item }}"
+          dest: /etc/yum.repos.d/
+          owner: root
+          group: root
+          mode: 0644
+        with_fileglob: ../files/fedora-repos/*.repo
+
+      - name: Make sure local system has additional third-party packages present and up to date
+        dnf:
+          name: "{{ item }}"
+          state: latest
+        with_items: "{{ dnf_extras }}"
+
+      - name: Ensure Python utilities are installed
+        pip:
+          name: "{{ item }}"
+          state: latest
+        with_items: "{{ pip_basic }}"
+
+      when: basic_updates
+
+########### CONFIGURE PROFILES AND OTHER ODDITIES ABOUT THIS SYSTEM (basic_config) #
+    - block:
+      - name: Ensure there is a docker group
+        group:
+          name: docker
+      
+      - name: Ensure the system user belongs to the docker and wheel groups
+        user:
+          name: "{{ sys_user }}"
+          groups: docker,wheel
+          append: yes
+          state: present
+
+      - name: Make sure BOTO is configured for Ansible
+        template:
+          dest: "/home/{{ sys_user }}/.boto"
+          src: ../templates/boto-config.j2
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+
+      - name: Make sure the Git profile is up to date
+        template:
+          dest: "/home/{{ sys_user }}/.gitconfig"
+          src: ../templates/gitconfig.j2
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+
+      when: basic_config
+
+    - block: 
+      - name: Ensure FZF is present
+        git:
+          repo: https://github.com/junegunn/fzf.git
+          depth: 1
+          dest: "/home/{{ sys_user }}/.fzf"
+          clone: yes
+        ignore_errors: yes
+      
+      - name: Ensure FZF is bootstrapped
+        become: true
+        become_user: root
+        shell: "/home/{{ sys_user }}/.fzf/install --bin"
+        async: 0
+        poll: 0
+        ignore_errors: yes
+
+      - name: Ensure FZF is installed
+        become: true
+        become_user: "{{ sys_user }}"
+        shell: "/home/{{ sys_user }}/.fzf/install --all"
+        async: 0
+        poll: 0
+        ignore_errors: yes
+
+      - name: Ensure Packer binary is present
+        stat:
+          path: "/home/{{ sys_user }}/.local/bin/packer"
+        register: pkr_present
+
+      # This is a workaround to downloading and unarchiving in the same step until Ansible 2.2 is more widely available
+      - name: Download Packer binary from Hashicorp
+        get_url:
+          url: "{{ hashicorp_packer_source_url }}"
+          dest: "/root/{{ hashicorp_packer_source_file }}"
+        when: pkr_present.stat.exists == false
+        ignore_errors: yes
+
+      - name: Deploy Packer binary from Hashicorp
+        unarchive:
+          src: "/root/{{ hashicorp_packer_source_file }}"
+          dest: "/home/{{ sys_user }}/.local/bin"
+          copy: no
+          #remote_src: yes
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+        when: pkr_present.stat.exists == false
+        become: yes
+        become_user: root
+        ignore_errors: yes
+
+      - name: Ensure packer binary is aliased to pkr
+        file:
+          src: "/home/{{ sys_user }}/.local/bin/packer"
+          dest: "/home/{{ sys_user }}/.local/bin/pkr"
+          state: link
+        ignore_errors: yes
+
+      when: basic_updates
+
+########### MAKE SURE OUR SOURCE CODE IS CHECKED OUT AND READY TO GO ###############
+    - block:
+      - name: Make sure repo-root folder is present
+        file:
+          path: "/home/{{ sys_user }}/Extra/repos"
+          state: directory
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+
+      - name: Make sure third-party repo folder is present
+        file:
+          path: "/home/{{ sys_user }}/Extra/repos/third-party"
+          state: directory
+          owner: "{{ sys_user }}"
+          group: "{{ sys_user }}"
+
+      - name: Clone Git repos (key-based)
+        git:
+          repo: "{{ item.value.repo }}"
+          dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
+          key_file: "/home/{{ sys_user }}/.ssh/id-rsa"
+          accept_hostkey: yes
+        with_dict: "{{ key_based_git_repos }}"
+        ignore_errors: yes
+
+      - name: Clone Git repos (http-based)
+        git:
+          repo: "{{ item.value.repo }}"
+          dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
+          key_file: "/home/{{ sys_user }}/.ssh/id-rsa"
+        with_dict: "{{ http_based_git_repos }}"
+        ignore_errors: yes
+
+      when: get_repos
+      become_user: "{{ sys_user}}"
+      become: true
