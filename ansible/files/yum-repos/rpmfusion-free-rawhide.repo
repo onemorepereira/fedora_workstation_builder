@@ -1,0 +1,23 @@
+[rpmfusion-free-rawhide]
+name=RPM Fusion for Fedora Rawhide - Free
+#baseurl=http://download1.rpmfusion.org/free/fedora/development/$basearch/os/
+mirrorlist=http://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-rawhide&arch=$basearch
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-latest file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-rawhide
+
+[rpmfusion-free-rawhide-debuginfo]
+name=RPM Fusion for Fedora Rawhide - Free - Debug
+#baseurl=http://download1.rpmfusion.org/free/fedora/development/$basearch/os/debug/
+mirrorlist=http://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-rawhide-debug&arch=$basearch
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-latest file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-rawhide
+
+[rpmfusion-free-rawhide-source]
+name=RPM Fusion for Fedora Rawhide - Free - Source
+#baseurl=http://download1.rpmfusion.org/free/fedora/development/source/SRPMS/
+mirrorlist=http://mirrors.rpmfusion.org/mirrorlist?repo=free-fedora-rawhide-source&arch=$basearch
+enabled=0
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-latest file:///etc/pki/rpm-gpg/RPM-GPG-KEY-rpmfusion-free-fedora-rawhide
