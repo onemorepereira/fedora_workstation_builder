@@ -8,7 +8,7 @@ Its intended to become flexible and modular by leveraging Ansible best practices
 ```
 .
 ├── files
-│   └── fedora-repos
+│   └── yum-repos
 ├── samples
 │   └── tomsawyer.yml
 ├── tasks
@@ -38,9 +38,11 @@ ansible-playbook ./tasks/fedora-main.yml \
 ```
 .
 └── files
-    └── fedora-repos
+    └── yum-repos
 ```
 This directoy should hold any `dnf` repositories that you would like to include on your system build. These are traditional _YUM/DNF_ repo files that will be copied _verbatim_ under `/etc/yum.repos.d`. Files placed here must have an `.repo` extension to be processed.
+
+We've included a basic set of repositories in order to enable our sample configuration to be tested via Jenkins. Your mileage may vary.
 
 ----
 
