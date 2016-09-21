@@ -99,7 +99,7 @@
           owner: root
           group: root
           mode: 0644
-        with_fileglob: ../files/fedora-repos/*.repo
+        with_fileglob: ../files/yum-repos/*.repo
 
       - name: Make sure local system has additional third-party packages present and up to date
         dnf:

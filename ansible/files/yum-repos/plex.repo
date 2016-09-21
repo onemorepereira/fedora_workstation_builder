@@ -1,0 +1,6 @@
+[PlexRepo]
+name=PlexRepo
+baseurl=http://plex.r.worldssl.net/PlexMediaServer/fedora-repo/release/$basearch/
+enabled=0
+gpgkey=https://plex.tv/plex_pub_key.pub
+gpgcheck=1
