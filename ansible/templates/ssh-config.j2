@@ -3,6 +3,7 @@ Host *
    UserKnownHostsFile=/dev/null
    IdentityFile ~/.ssh/{{ default_identity_key_file }}
 
+{% if bastions is defined %}
 {% for bastion in bastions %}
 Host {{ bastion.host_mask }}
   ProxyCommand ssh -W %h:%p {{ bastion.host_name }}
@@ -18,3 +19,4 @@ Host {{ bastion.host_name }}
   ControlPersist 5m
 
 {% endfor %}
+{% endif %}
