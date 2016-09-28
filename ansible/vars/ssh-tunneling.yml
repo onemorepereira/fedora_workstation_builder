@@ -1,2 +1,12 @@
-- bastions:
-  - {host_mask: 10.1.*.*, host_name: 8.8.10.10,   private_key: id_rsa,  user_name: ansible}
+# Parameters:
+# host_mask = indicate the IPv4 wildcard pattern that the bastion/proxy will handle; 
+#             i.e. 10.*.*.* would match any IP address in the range 10.0.0.0 through 10.255.255.255
+# host_name = this is the hostname or IP address of the bastion/ssh-proxy host
+# private_key = indicate the identity key / private key file that grants you access to the bastion host (host_name);
+#               this key is expected to reside under ~/.ssh/
+# user_name = this is the user identity you have access to on the bastion/ssh-proxy host
+# 
+# Usage: get started by uncommenting the lines below; you can define as many bastion/ssh-proxy servers as you need.
+
+# - bastions:
+  # - {host_mask: 10.1.*.*, host_name: 8.8.10.10,   private_key: id_rsa,  user_name: ansible}
