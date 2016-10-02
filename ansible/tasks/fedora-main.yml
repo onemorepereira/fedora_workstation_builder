@@ -120,11 +120,15 @@
       - name: Ensure there is a docker group
         group:
           name: docker
+
+      - name: Ensure there is a vboxusers group
+        group:
+          name: vboxusers
       
-      - name: Ensure the system user belongs to the docker and wheel groups
+      - name: Ensure the system user belongs to the docker, vboxusers and wheel groups
         user:
           name: "{{ sys_user }}"
-          groups: docker,wheel
+          groups: docker,wheel,vboxusers
           append: yes
           state: present
 
