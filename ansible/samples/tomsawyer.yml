@@ -14,6 +14,7 @@ hashicorp_packer_source_file: packer_0.10.1_linux_amd64.zip
 
 boto_aws_region: "us-west-2"
 boto_aws_region_endpoint: "ec2.us-west-2.amazonaws.com"
+s3_main_bucket_region_url: "s3.amazonaws.com"
 
 dnf_basic:
   - zip
