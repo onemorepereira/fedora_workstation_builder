@@ -21,6 +21,11 @@
     - ../vars/ssh-tunneling.yml
     - ../vars/code-repo-lists.yml
 
+  pre_tasks:
+    # Certainly we can use these somewhere
+    - set_fact:
+        os_name: "{{ ansible_distribution }}"
+        os_ver: "{{ ansible_distribution_major_version }}"
 ########### BASIC CONFIGURATION (basic_setup) ######################################
   tasks:
     - block:
@@ -183,6 +188,7 @@
         get_url:
           url: "{{ hashicorp_packer_source_url }}"
           dest: "/root/{{ hashicorp_packer_source_file }}"
+          validate_certs: no
         when: pkr_present.stat.exists == false
         ignore_errors: yes
 
