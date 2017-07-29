@@ -178,37 +178,20 @@
         poll: 0
         ignore_errors: yes
 
-      - name: Ensure Packer binary is present
-        stat:
-          path: "/home/{{ sys_user }}/.local/bin/packer"
-        register: pkr_present
-
-      # This is a workaround to downloading and unarchiving in the same step until Ansible 2.2 is more widely available
-      - name: Download Packer binary from Hashicorp
-        get_url:
-          url: "{{ hashicorp_packer_source_url }}"
-          dest: "/root/{{ hashicorp_packer_source_file }}"
-          validate_certs: no
-        when: pkr_present.stat.exists == false
-        ignore_errors: yes
-
       - name: Deploy Packer binary from Hashicorp
         unarchive:
-          src: "/root/{{ hashicorp_packer_source_file }}"
-          dest: "/home/{{ sys_user }}/.local/bin"
-          copy: no
-          #remote_src: yes
-          owner: "{{ sys_user }}"
-          group: "{{ sys_user }}"
-        when: pkr_present.stat.exists == false
+          src: "{{ hashicorp_packer_source_url }}"
+          dest: "/usr/bin/"
+          remote_src: true
+          validate_certs: no
         become: yes
         become_user: root
         ignore_errors: yes
 
       - name: Ensure packer binary is aliased to pkr
         file:
-          src: "/home/{{ sys_user }}/.local/bin/packer"
-          dest: "/home/{{ sys_user }}/.local/bin/pkr"
+          src: "/usr/bin/packer"
+          dest: "/usr/bin/pkr"
           state: link
         ignore_errors: yes
 
