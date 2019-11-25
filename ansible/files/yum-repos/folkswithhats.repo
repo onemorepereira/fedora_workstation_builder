@@ -1,7 +1,0 @@
-[folkswithhats]
-name=Repository for Fedy
-baseurl=http://folkswithhats.org/repo/$releasever/
-enabled=1
-skip_if_unavailable=1
-metadata_expire=1d
-gpgcheck=0
