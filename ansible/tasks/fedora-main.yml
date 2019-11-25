@@ -3,18 +3,8 @@
   connection: local
   become: true
   become_user: root
-  remote_user: root
+  remote_user: "{{ sys_user }}"
   become_method: sudo
-
-####### IDEAS ######################################################################
-# INSTALL autokey & define custom key-bindings
-# INSTALL gTile
-# INSTALL http://skilion.github.io/onedrive/
-# DEFINE shutter custom keymappings
-# READ: https://github.com/skilion/onedrive
-# COMPLETE: Installation of OneDrive client
-# REQUISITE: ENSURE python2-dnf IS INSTALLED
-####################################################################################
 
 ####### DEFINING VARIABLES AND SUCH ################################################
   vars_files:
@@ -22,41 +12,31 @@
     - ../vars/code-repo-lists.yml
 
   pre_tasks:
-    # Certainly we can use these somewhere
     - set_fact:
         os_name: "{{ ansible_distribution }}"
         os_ver: "{{ ansible_distribution_major_version }}"
+
 ########### BASIC CONFIGURATION (basic_setup) ######################################
   tasks:
     - block:
-      - name: Install libselinux-python
-        dnf:
-          name: libselinux-python
-          state: present
-
       - name: Ensure the local system has a proper hostname
         hostname: name="fedora-{{ 999999 | random }}"
         when: "'fedora-' not in ansible_hostname"
 
       - name: Add management public key to target systems
         authorized_key: 
-          user: root
+          user: "{{ item }}"
           key: "{{ public_key_value }}"
+        with_items:
+          - root
+          - "{{ sys_user }}"
         when: public_key_value is defined
   
-      - name: Import the encrypted private keys as a variable
+      - name: Import key-pairs as a variables 
         include_vars: ../vars/vault/secrets.yaml
         no_log: true
   
-      - name: Ensure there is an .ssh directory
-        file:
-          path: "/home/{{ sys_user }}/.ssh"
-          state: directory
-          owner: "{{ sys_user }}"
-          group: "{{ sys_user }}" 
-          mode: 0700
-  
-      - name: Make sure our private keys are on the system
+      - name: Deploy key-pairs
         copy:
           content: "{{ item.value.key_value }}"
           dest: "/home/{{ sys_user }}/.ssh/{{ item.value.key_name }}"
@@ -66,7 +46,7 @@
         no_log: true
         with_dict: "{{ keys }}"
   
-      - name: Ensure local system ssh-configuration is up to date
+      - name: "Update remote user >>{{ sys_user }}<< ssh-config"
         template:
           dest: "/home/{{ sys_user }}/.ssh/config"
           src: ../templates/ssh-config.j2
@@ -78,6 +58,15 @@
 
 ########### INITIAL PACKAGE UPDATES AND INSTALLS (basic_updates) ###################
     - block:
+      - name: Ensure extra RPM repos are present
+        copy:
+          src: "{{ item }}"
+          dest: /etc/yum.repos.d/
+          owner: root
+          group: root
+          mode: 0644
+        with_fileglob: ../files/yum-repos/*.repo
+
       - name: Make sure base-system packages are up to date
         dnf:
           name: "*"
@@ -89,34 +78,29 @@
         async: 1
         poll: 0
         ignore_errors: yes
-        when: reboot and system_update.changed
+        when: reboot #and system_update.changed
+      
+      - name: Wait for system to come online
+        wait_for_connection:
+          delay: 60
+          sleep: 5
+          timeout: 900
+        when: reboot
 
       - name: Make sure local system has basic packages installed and up to date
         dnf:
-          name: "{{ item }}"
+          name: "{{ dnf_basic }}"
           state: latest
-        with_items: "{{ dnf_basic }}"
-
-      - name: Ensure extra RPM repos are up to date
-        copy:
-          src: "{{ item }}"
-          dest: /etc/yum.repos.d/
-          owner: root
-          group: root
-          mode: 0644
-        with_fileglob: ../files/yum-repos/*.repo
 
       - name: Make sure local system has additional third-party packages present and up to date
         dnf:
-          name: "{{ item }}"
+          name: "{{ dnf_extras }}"
           state: latest
-        with_items: "{{ dnf_extras }}"
 
-      - name: Ensure Python utilities are installed
+      - name: Pip Installs
         pip:
-          name: "{{ item }}"
+          name: "{{ pip_basic }}"
           state: latest
-        with_items: "{{ pip_basic }}"
 
       when: basic_updates
 
@@ -126,14 +110,10 @@
         group:
           name: docker
 
-      - name: Ensure there is a vboxusers group
-        group:
-          name: vboxusers
-      
-      - name: Ensure the system user belongs to the docker, vboxusers and wheel groups
+      - name: Ensure the system user belongs to the docker, and wheel groups
         user:
-          name: "{{ sys_user }}"
-          groups: docker,wheel,vboxusers
+          name: root
+          groups: docker,wheel
           append: yes
           state: present
 
@@ -141,7 +121,7 @@
         template:
           dest: "/home/{{ sys_user }}/.boto"
           src: ../templates/boto-config.j2
-          owner: "{{ sys_user }}"
+          owner: root
           group: "{{ sys_user }}"
 
       - name: Make sure the Git profile is up to date
@@ -178,21 +158,26 @@
         poll: 0
         ignore_errors: yes
 
-      - name: Deploy Packer binary from Hashicorp
+      - name: Explode remote binaries
         unarchive:
-          src: "{{ hashicorp_packer_source_url }}"
+          src: "{{ item.value }}"
           dest: "/usr/bin/"
           remote_src: true
           validate_certs: no
+        with_dict: "{{ binaries_remote_archived }}"
         become: yes
         become_user: root
         ignore_errors: yes
 
-      - name: Ensure packer binary is aliased to pkr
-        file:
-          src: "/usr/bin/packer"
-          dest: "/usr/bin/pkr"
-          state: link
+      - name: Download remote binaries
+        get_url:
+          url: "{{ item.value }}"
+          dest: "/usr/bin/{{ item.key }}"
+          validate_certs: no
+          mode: 0751
+        with_dict: "{{ binaries_remote }}"
+        become: yes
+        become_user: root
         ignore_errors: yes
 
       when: basic_updates
@@ -217,7 +202,7 @@
         git:
           repo: "{{ item.value.repo }}"
           dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
-          key_file: "/home/{{ sys_user }}/.ssh/id-rsa"
+          key_file: "/home/{{ sys_user }}/.ssh/id_rsa"
           accept_hostkey: yes
         with_dict: "{{ key_based_git_repos }}"
         ignore_errors: yes
@@ -226,7 +211,7 @@
         git:
           repo: "{{ item.value.repo }}"
           dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
-          key_file: "/home/{{ sys_user }}/.ssh/id-rsa"
+          key_file: "/home/{{ sys_user }}/.ssh/id_rsa"
         with_dict: "{{ http_based_git_repos }}"
         ignore_errors: yes
 
