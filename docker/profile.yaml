@@ -1,0 +1,70 @@
+---
+# Defining a bootstrap
+basic_setup: true
+basic_updates: true
+basic_config: true
+get_repos: true
+reboot: false
+sys_user: test
+public_key_value: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6Ozw992fHH8XwdC5z+t7n2NwyIAAyCZ1nE2JrsFF/BTOch/JxC8lTy/GErqxxOIa1LSp5OpcDLB/YOG15aLMOGuc5D/t0rndQug+DIIUuKNpmc4v951b3aw6lsePhS+ks87hQAVxLWKsF8UU/+ewypGJ6cfivv1xrWKIoSVjWlCLkbnQRkqsZE7WP5R8Y71rDacYOq8HfGvTqBtaN/8jtkKGU4Z6If9q8kz5vAFhFwxRh7FiDPwqVbkGhoqFxEFFCfd7HWA0uIXCkoxFI29bnJw0xIDlO4zWYoavlNcS+8uTy0Urihn+R/s3oOm/xhfj3PKgNbxXEYnuKsi7jAx2F"
+sys_user_email: "tom.sawyer@2112.xyz"
+git_nickname: zawyerhazcodez
+default_identity_key_file: id_rsa
+
+binaries_remote_archived: 
+  packer: https://releases.hashicorp.com/packer/1.5.6/packer_1.5.6_linux_amd64.zip
+  eksctl: https://github.com/weaveworks/eksctl/releases/download/latest_release/eksctl_Linux_amd64.tar.gz
+  terraform: https://releases.hashicorp.com/terraform/0.12.24/terraform_0.12.24_linux_amd64.zip
+
+binaries_remote:
+  kops:     https://github.com/kubernetes/kops/releases/download/v1.16.2/kops-linux-amd64
+  minikube: https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+
+installers:
+  aws: https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip
+  awscli-bundle:  https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
+
+boto_aws_region: "us-west-2"
+boto_aws_region_endpoint: "ec2.us-west-2.amazonaws.com"
+s3_main_bucket_region_url: "s3.amazonaws.com"
+
+dnf_basic:
+  - git
+  - zip
+  - unzip
+  - ansible
+  - yum-utils
+  - jq
+
+dnf_extras:
+  - gvfs-mtp
+  - simple-mtpfs
+
+pip_basic:
+  - stacker
+
+# SOURCE CODE REPOSITORIES
+key_based_git_repos:
+  couchdb:
+    class: third-party
+    repo: ssh://git@github.com/apache/couchdb.git
+
+http_based_git_repos:
+  ansible:
+    class: third-party
+    repo: https://github.com/ansible/ansible.git
+
+# SSH CONFIGURATION --> TUNNELING
+# Parameters:
+# host_mask = indicate the IPv4 wildcard pattern that the bastion/proxy will handle; 
+#             i.e. 10.*.*.* would match any IP address in the range 10.0.0.0 through 10.255.255.255
+# host_name = this is the hostname or IP address of the bastion/ssh-proxy host
+# private_key = indicate the identity key / private key file that grants you access to the bastion host (host_name);
+#               this key is expected to reside under ~/.ssh/
+# user_name = this is the user identity you have access to on the bastion/ssh-proxy host
+# 
+# Usage: get started by uncommenting the lines below; you can define as many bastion/ssh-proxy servers as you need.
+
+# - bastions:
+  # - {host_mask: 10.1.*.*, host_name: 8.8.10.10,   private_key: id_rsa,  user_name: ansible}
+...

@@ -1,0 +1,24 @@
+- name: Ensure there is a docker group
+  group:
+    name: docker
+
+- name: Ensure the system user belongs to the docker, and wheel groups
+  user:
+    name: root
+    groups: docker,wheel
+    append: yes
+    state: present
+
+- name: Make sure BOTO is configured for Ansible
+  template:
+    dest: "/home/{{ sys_user }}/.boto"
+    src: ../templates/boto-config.j2
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+
+- name: Make sure the Git profile is up to date
+  template:
+    dest: "/home/{{ sys_user }}/.gitconfig"
+    src: ../templates/gitconfig.j2
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
