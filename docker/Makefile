@@ -1,5 +1,5 @@
 test:
-		ansible-playbook test.yaml \
+		ansible-playbook play.yaml \
 		--ask-vault-pass \
 		-i inventory \
 		--extra-vars @profile.yaml \
