@@ -1,0 +1,36 @@
+---
+# ONLINE REPOSITORIES
+- block:
+  - name: Make sure repo-root folder is present
+    file:
+      path: "/home/{{ sys_user }}/Extra/repos"
+      state: directory
+      owner: "{{ sys_user }}"
+      group: "{{ sys_user }}"
+
+  - name: Make sure third-party repo folder is present
+    file:
+      path: "/home/{{ sys_user }}/Extra/repos/third-party"
+      state: directory
+      owner: "{{ sys_user }}"
+      group: "{{ sys_user }}"
+
+  - name: Clone Git repos (key-based)
+    git:
+      repo: "{{ item.value.repo }}"
+      dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
+      key_file: "/home/{{ sys_user }}/.ssh/id_rsa"
+      accept_hostkey: yes
+    with_dict: "{{ key_based_git_repos }}"
+    ignore_errors: yes
+
+  - name: Clone Git repos (http-based)
+    git:
+      repo: "{{ item.value.repo }}"
+      dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
+      key_file: "/home/{{ sys_user }}/.ssh/id_rsa"
+    with_dict: "{{ http_based_git_repos }}"
+    ignore_errors: yes
+
+  become_user: "{{ sys_user }}"
+  become: true

@@ -1,0 +1,43 @@
+- name: Make sure local system has additional third-party packages present and up to date
+  dnf:
+    name: "{{ dnf_extras }}"
+    state: latest
+  ignore_errors: yes
+  
+- name: Pip Installs
+  pip:
+    name: "{{ pip_basic }}"
+    state: latest
+
+- name: Explode remote binaries
+  unarchive:
+    src: "{{ item.value }}"
+    dest: "/usr/bin/"
+    remote_src: true
+    validate_certs: no
+  with_dict: "{{ binaries_remote_archived }}"
+  become: yes
+  become_user: root
+  ignore_errors: yes
+
+- name: Download remote binaries
+  get_url:
+    url: "{{ item.value }}"
+    dest: "/usr/bin/{{ item.key }}"
+    validate_certs: no
+    mode: 0751
+  with_dict: "{{ binaries_remote }}"
+  become: yes
+  become_user: root
+  ignore_errors: yes
+
+- name: Download AWSCLI
+  unarchive:
+    src: "{{ item.value }}"
+    dest: "/tmp/"
+    remote_src: true
+    validate_certs: no
+  with_dict: "{{ installers }}"
+
+- name: Install aws-cli2
+  command: "/tmp/aws/install --update"

@@ -1,0 +1,29 @@
+---
+# FZF
+- block:
+  - name: Ensure FZF is present
+    git:
+      repo: https://github.com/junegunn/fzf.git
+      depth: 1
+      dest: "/home/{{ sys_user }}/.fzf"
+      clone: yes
+    ignore_errors: yes
+
+  - name: Ensure FZF is bootstrapped
+    shell: 
+      cmd: "/home/{{ sys_user }}/.fzf/install --bin"
+      chdir: "/home/{{ sys_user }}"
+    async: 0
+    poll: 0
+    ignore_errors: yes
+
+  - name: Ensure FZF is installed
+    shell: 
+      cmd: "/home/{{ sys_user }}/.fzf/install --all"
+      chdir: "/home/{{ sys_user }}"
+    async: 0
+    poll: 0
+    ignore_errors: yes
+
+  become_user: "{{ sys_user }}"
+  become: true
