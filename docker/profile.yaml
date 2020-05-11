@@ -35,6 +35,8 @@ dnf_basic:
   - ansible
   - yum-utils
   - jq
+  - pip
+  - "@container-management"
 
 dnf_extras:
   - gvfs-mtp
