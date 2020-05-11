@@ -4,5 +4,6 @@
 - include: 00-basic.yaml
 - include: 10-users.yaml
 - include: 30-tools.yaml
+- include: 31-serverless.yaml
 - include: 40-fzf.yaml
 - include: 50-repos.yaml

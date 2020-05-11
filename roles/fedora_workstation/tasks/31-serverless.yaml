@@ -1,0 +1,21 @@
+- name: Download Serverless Installer
+  get_url: 
+    url: https://slss.io/install
+    dest: "/home/{{ sys_user }}/install"
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+    mode: "u+rwx"
+
+- name: Install Serverless Framework
+  shell: "/home/{{ sys_user }}/install"
+  args:
+    executable: /bin/bash
+  become: yes
+  become_user: "{{ sys_user }}"
+
+- name: Delete Serverless Installer
+  file: 
+    path: "/home/{{ sys_user }}/install"
+    state: absent
+  become: yes
+  become_user: "{{ sys_user }}"
