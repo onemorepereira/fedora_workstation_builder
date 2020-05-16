@@ -1,21 +1,27 @@
 version: 2
 jobs:
-  build:
+  setup:
     docker:
       - image: fedora:32
     steps:
       - checkout
-      - run: sudo dnf install tree make -y
+      - run: sudo dnf install tree make ansible -y
       - run: tree
+      - run: echo $ANSIBLE_VAULT_PASSWORD > $DEFAULT_VAULT_PASSWORD_FILE
   test:
     docker:
       - image: fedora:32
     steps:
       - checkout
-      - run: pwd
+      - run: ansible-playbook play_local.yaml \
+          --extra-vars @profile.yaml \
+          -e variable_host=podman \
+          -e ansible_user=root \
+          -e sys_user=test \
+          --start-at-task "Add management public key to target systems"
 workflows:
   version: 2
-  build_and_test:
+  setup_and_test:
     jobs:
-      - build
+      - setup
       - test
