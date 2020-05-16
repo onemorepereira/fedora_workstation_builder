@@ -1,0 +1,19 @@
+---
+- hosts: localost
+  connection: local
+  become: true
+  become_user: root
+  remote_user: "{{ sys_user }}"
+  become_method: sudo
+
+####### DEFINING VARIABLES AND SUCH ################################################
+  vars_files:
+    - secrets.yaml
+
+  pre_tasks:
+    - set_fact:
+        os_name: "{{ ansible_distribution }}"
+        os_ver: "{{ ansible_distribution_major_version }}"
+
+  roles:
+    - role: ../roles/fedora_workstation
