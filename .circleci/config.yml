@@ -5,13 +5,14 @@ jobs:
       - image: fedora:32
     steps:
       - checkout
-      - run: echo "---> Building!!!"
+      - run: sudo dnf install tree
+      - run: tree
   test:
     docker:
       - image: fedora:32
     steps:
       - checkout
-      - run: echo "---> Testing!!!"
+      - run: pwd
 workflows:
   version: 2
   build_and_test:
