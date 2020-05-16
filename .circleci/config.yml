@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  setup:
+  test:
     docker:
       - image: fedora:32
     steps:
@@ -8,11 +8,6 @@ jobs:
       - run: sudo dnf install tree make ansible -y
       - run: tree
       - run: echo $ANSIBLE_VAULT_PASSWORD > $DEFAULT_VAULT_PASSWORD_FILE
-  test:
-    docker:
-      - image: fedora:32
-    steps:
-      - checkout
       - run: ansible-playbook play_local.yaml \
           --extra-vars @profile.yaml \
           -e variable_host=podman \
@@ -23,5 +18,4 @@ workflows:
   version: 2
   setup_and_test:
     jobs:
-      - setup
       - test
