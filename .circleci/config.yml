@@ -8,7 +8,7 @@ jobs:
       - run: sudo dnf install tree make ansible -y
       - run: tree
       - run: echo $ANSIBLE_VAULT_PASSWORD > $DEFAULT_VAULT_PASSWORD_FILE
-      - run: echo $ANSIBLE_VAULT_PASSWORD
+      - run: echo $ANSIBLE_VAULT_PASSWORD && 
              cat $DEFAULT_VAULT_PASSWORD_FILE
       - run: cd docker && ansible-playbook play_local.yaml
               --extra-vars @profile.yaml
