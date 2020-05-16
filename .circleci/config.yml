@@ -5,7 +5,11 @@ jobs:
       - image: fedora:32
     steps:
       - checkout
-      - run: sudo dnf install tree make ansible -y
+      - run: sudo dnf install -y
+              tree 
+              make 
+              ansible 
+              openssh
       - run: tree
       - run: echo password > /.vault_pwd && 
              echo /.vault_pwd
