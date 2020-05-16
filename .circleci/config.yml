@@ -8,8 +8,8 @@ jobs:
       - run: sudo dnf install tree make ansible -y
       - run: tree
       - run: echo $ANSIBLE_VAULT_PASSWORD > $DEFAULT_VAULT_PASSWORD_FILE
-      - run: ansible-playbook ./docker/play_local.yaml
-          --extra-vars @./docker/profile.yaml
+      - run: cd docker && ansible-playbook play_local.yaml
+          --extra-vars @profile.yaml
           -e variable_host=podman
           -e ansible_user=root
           -e sys_user=test
