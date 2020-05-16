@@ -9,7 +9,8 @@ jobs:
       - run: tree
       - run: echo password > /.vault_pwd && 
              echo /.vault_pwd
-      - run: cd docker && ansible-playbook play_local.yaml
+      - run: cd docker && ssh-keygen -f temp_key -t ecdsa -b 521 -q -N "" -C noname &&
+             ansible-playbook play_local.yaml
               --extra-vars @profile.yaml
               --vault-password-file /.vault_pwd
               -e variable_host=podman
