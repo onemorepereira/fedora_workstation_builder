@@ -1,3 +1,5 @@
+[![<ORG_NAME>](https://circleci.com/gh/onemorepereira/fedora_workstation_builder.svg?style=shield)](<LINK>)
+
 # Fedora workstation builder
 This project is intended to help teams and individuals currently using a Fedora Project or derivative distribution of Linux to shorten the time it takes to go from _fresh install_ to _ready-to-rock-n-roll!_
 
