@@ -10,7 +10,8 @@ jobs:
               make 
               ansible 
               openssh
-      - run: tree
+      - run: tree &&
+             useradd test
       - run: echo password > /.vault_pwd && 
              echo /.vault_pwd
       - run: cd docker && ssh-keygen -f temp_key -t ecdsa -b 521 -q -N "" -C noname &&
