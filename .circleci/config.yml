@@ -5,7 +5,7 @@ jobs:
       - image: fedora:32
     steps:
       - checkout
-      - run: sudo dnf install tree
+      - run: sudo dnf install tree make -y
       - run: tree
   test:
     docker:
