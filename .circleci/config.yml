@@ -1,0 +1,29 @@
+version: 2
+jobs:
+  test:
+    docker:
+      - image: fedora:32
+    steps:
+      - checkout
+      - run: sudo dnf install -y
+              tree 
+              make 
+              ansible 
+              openssh
+      - run: tree &&
+             useradd test
+      - run: echo password > /.vault_pwd && 
+             echo /.vault_pwd
+      - run: cd docker && ssh-keygen -f temp_key -t ecdsa -b 521 -q -N "" -C noname &&
+             ansible-playbook play_local.yaml
+              --extra-vars @profile.yaml
+              --vault-password-file /.vault_pwd
+              -e variable_host=podman
+              -e ansible_user=root
+              -e sys_user=test
+              --start-at-task "Add management public key to target systems"
+workflows:
+  version: 2
+  setup_and_test:
+    jobs:
+      - test
