@@ -8,12 +8,14 @@ jobs:
       - run: sudo dnf install tree make ansible -y
       - run: tree
       - run: echo $ANSIBLE_VAULT_PASSWORD > $DEFAULT_VAULT_PASSWORD_FILE
+      - run: echo $ANSIBLE_VAULT_PASSWORD
+             cat $DEFAULT_VAULT_PASSWORD_FILE
       - run: cd docker && ansible-playbook play_local.yaml
-          --extra-vars @profile.yaml
-          -e variable_host=podman
-          -e ansible_user=root
-          -e sys_user=test
-          --start-at-task "Add management public key to target systems"
+              --extra-vars @profile.yaml
+              -e variable_host=podman
+              -e ansible_user=root
+              -e sys_user=test
+              --start-at-task "Add management public key to target systems"
 workflows:
   version: 2
   setup_and_test:
