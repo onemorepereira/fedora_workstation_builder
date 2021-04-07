@@ -42,7 +42,7 @@ ansible-playbook ./tasks/fedora-main.yml \
 └── files
     └── yum-repos
 ```
-This directoy should hold any `dnf` repositories that you would like to include on your system build. These are traditional _YUM/DNF_ repo files that will be copied _verbatim_ under `/etc/yum.repos.d`. Files placed here must have an `.repo` extension to be processed.
+This directory should hold any `dnf` repositories that you would like to include on your system build. These are traditional _YUM/DNF_ repo files that will be copied _verbatim_ under `/etc/yum.repos.d`. Files placed here must have an `.repo` extension to be processed.
 
 We've included a basic set of repositories in order to enable our sample configuration to be tested via Jenkins. Your mileage may vary.
 
@@ -80,7 +80,7 @@ Templates provide flexibility to customize configuration files.
     └── vault
         └── secrets.yaml
 ```
-_Var_ files can store anythig, ranging from simple key:value pairs to complex multi-level dictionary structures. Their common denominator is that we are not keeping any sensitive information here.
+_Var_ files can store anything, ranging from simple key:value pairs to complex multi-level dictionary structures. Their common denominator is that we are not keeping any sensitive information here.
 
 _Secret_ files on the other hand, are intended to store our sensitive data. As a rule of thumb, you should **NEVER** commit your secret files back into source control. Here is where we store keys & passwords.
 
