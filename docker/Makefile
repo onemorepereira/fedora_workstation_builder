@@ -12,7 +12,7 @@ test:
 
 build:
 		ssh-keygen -f temp_key -t ecdsa -b 521 -q -N "" -C noname
-		podman build -t ansible:fedora --build-arg FEDORA_VERSION=32 .
+		podman build -t ansible:fedora --build-arg FEDORA_VERSION=34 .
 
 run:
 		podman run -p 2222:22 ansible:fedora
