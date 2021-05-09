@@ -1,4 +1,4 @@
-ARG FEDORA_VERSION=33
+ARG FEDORA_VERSION=34
 FROM fedora:$FEDORA_VERSION
 
 LABEL maintainer="Miguel Pereira"
