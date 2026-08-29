@@ -1,0 +1,62 @@
+---
+# Example blueprint — copy this file, make it yours, and pass it with
+#   ansible-playbook play_local.yaml -e @my-profile.yaml
+
+# Behaviour toggles
+basic_updates: true
+reboot: false
+get_repos: false
+
+sys_user: test
+sys_user_email: "tom.sawyer@2112.xyz"
+git_nickname: zawyerhazcodez
+default_identity_key_file: id_ed25519
+
+# PUBLIC key added to root and sys_user authorized_keys for remote management
+# yamllint disable-line rule:line-length
+public_key_value: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6Ozw992fHH8XwdC5z+t7n2NwyIAAyCZ1nE2JrsFF/BTOch/JxC8lTy/GErqxxOIa1LSp5OpcDLB/YOG15aLMOGuc5D/t0rndQug+DIIUuKNpmc4v951b3aw6lsePhS+ks87hQAVxLWKsF8UU/+ewypGJ6cfivv1xrWKIoSVjWlCLkbnQRkqsZE7WP5R8Y71rDacYOq8HfGvTqBtaN/8jtkKGU4Z6If9q8kz5vAFhFwxRh7FiDPwqVbkGhoqFxEFFCfd7HWA0uIXCkoxFI29bnJw0xIDlO4zWYoavlNcS+8uTy0Urihn+R/s3oOm/xhfj3PKgNbxXEYnuKsi7jAx2F"
+
+# Zip/tar archives exploded into /usr/local/bin (version-pinned, TLS-verified).
+# Terraform is BSL-licensed since 1.6 — swap in OpenTofu if that matters to you:
+#   https://github.com/opentofu/opentofu/releases/download/v1.12.6/tofu_1.12.6_linux_amd64.zip
+binaries_remote_archived:
+  terraform: https://releases.hashicorp.com/terraform/1.16.0/terraform_1.16.0_linux_amd64.zip
+  packer: https://releases.hashicorp.com/packer/1.16.0/packer_1.16.0_linux_amd64.zip
+  eksctl: https://github.com/eksctl-io/eksctl/releases/download/v0.230.0/eksctl_Linux_amd64.tar.gz
+
+# Single binaries dropped into /usr/local/bin with checksum verification
+binaries_remote:
+  kops:
+    url: https://github.com/kubernetes/kops/releases/download/v1.36.2/kops-linux-amd64
+    checksum: sha256:0a497df3665569f07c76c31a245ab2cc69e1d327faf7805b83358fde5a4b8da1
+  minikube:
+    url: https://github.com/kubernetes/minikube/releases/download/v1.38.1/minikube-linux-amd64
+    checksum: sha256:099477eaf248bcb5bcea8ce78a2898e93ac01461c35189da1848c3de82ecd22e
+
+# Anything Fedora already packages belongs here, not in a download URL.
+# awscli2 replaces the old bundled AWS CLI installers. kubectl is packaged as
+# versioned "kubernetes1.3x-client" packages if you want it from dnf.
+dnf_extras:
+  - awscli2
+  - gvfs-mtp
+  - jmtpfs
+
+# SOURCE CODE REPOSITORIES (cloned when get_repos is true)
+key_based_git_repos: {}
+#  couchdb:
+#    class: third-party
+#    repo: ssh://git@github.com/apache/couchdb.git
+
+http_based_git_repos: {}
+#  ansible:
+#    class: third-party
+#    repo: https://github.com/ansible/ansible.git
+
+# SSH CONFIGURATION --> TUNNELING
+# host_mask    = IPv4 wildcard the bastion/proxy will handle (e.g. 10.1.*.*)
+# host_name    = hostname or IP of the bastion host
+# private_key  = identity key under ~/.ssh/ granting access to the bastion
+# user_name    = your user on the bastion host
+#
+# bastions:
+#   - {host_mask: 10.1.*.*, host_name: 8.8.10.10, private_key: id_ed25519, user_name: ansible}

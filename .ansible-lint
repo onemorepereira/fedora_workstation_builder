@@ -1,0 +1,6 @@
+---
+skip_list:
+  - package-latest  # the full-system "name: '*' state: latest" update is deliberate
+  # Short var names (sys_user, dnf_basic, ...) are this role's public interface;
+  # prefixing them fedora_workstation_* would break every existing profile.
+  - var-naming[no-role-prefix]

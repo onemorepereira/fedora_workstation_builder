@@ -1,0 +1,28 @@
+---
+- name: Ensure sudo is installed
+  ansible.builtin.package:
+    name: sudo
+    state: present
+
+- name: Ensure the system user exists and belongs to the wheel group
+  ansible.builtin.user:
+    name: "{{ sys_user }}"
+    groups: wheel
+    append: true
+    state: present
+
+- name: Allow the wheel group passwordless sudo
+  ansible.builtin.lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: 'visudo -cf %s'
+
+- name: Make sure the Git profile is up to date
+  ansible.builtin.template:
+    dest: "/home/{{ sys_user }}/.gitconfig"
+    src: gitconfig.j2
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+    mode: "0644"

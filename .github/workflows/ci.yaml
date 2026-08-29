@@ -1,0 +1,50 @@
+---
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # Monthly canary run — catches breakage from new Fedora/collection releases
+    - cron: "17 6 1 * *"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lint toolchain
+        run: pip install ansible-core ansible-lint yamllint
+      - name: Install required collections
+        run: ansible-galaxy collection install -r requirements.yml
+      - name: yamllint
+        run: yamllint .
+      - name: ansible-lint
+        run: ansible-lint
+      - name: Playbook syntax check
+        run: ansible-playbook play_local.yaml --syntax-check -e sys_user=test
+
+  converge:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        fedora: [43, 44]
+    container:
+      image: fedora:${{ matrix.fedora }}
+    steps:
+      - name: Bootstrap Ansible
+        run: dnf -y install ansible-core python3-libdnf5 git tar unzip
+      - uses: actions/checkout@v4
+      - name: Install required collections
+        run: ansible-galaxy collection install -r requirements.yml
+      - name: Converge
+        run: >
+          ansible-playbook play_local.yaml
+          -e @examples/profile.yaml
+          -e sys_user=test
+          -e basic_updates=false

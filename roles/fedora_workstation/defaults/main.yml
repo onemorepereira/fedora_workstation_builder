@@ -1,2 +1,33 @@
 ---
 # defaults file for fedora_workstation
+#
+# sys_user is required and has no default on purpose — the role targets a
+# specific human user and should fail fast when none is given.
+
+# Behaviour toggles
+basic_updates: true   # run a full package update
+reboot: false         # reboot after the update when it changed anything
+get_repos: false      # clone the configured source-code repositories
+
+# Baseline packages every workstation gets
+dnf_basic:
+  - sudo
+  - git
+  - zip
+  - unzip
+  - jq
+  - fzf
+  - python3-pip
+  - "@container-management"
+
+# Extra packages and tools — override these per profile
+dnf_extras: []
+binaries_remote_archived: {}
+binaries_remote: {}
+
+# Source code repositories (used when get_repos is true)
+key_based_git_repos: {}
+http_based_git_repos: {}
+
+# Default SSH identity referenced from the generated ssh-config
+default_identity_key_file: id_ed25519

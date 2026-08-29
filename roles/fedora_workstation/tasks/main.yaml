@@ -1,9 +1,15 @@
 ---
 # tasks file for fedora_workstation
 
-- include: 00-basic.yaml
-- include: 10-users.yaml
-- include: 30-tools.yaml
-- include: 31-serverless.yaml
-- include: 40-fzf.yaml
-- include: 50-repos.yaml
+- name: Users and privileges
+  ansible.builtin.import_tasks: 00-users.yaml
+
+- name: Base system configuration
+  ansible.builtin.import_tasks: 10-system.yaml
+
+- name: Third-party tooling
+  ansible.builtin.import_tasks: 20-tools.yaml
+
+- name: Source code repositories
+  ansible.builtin.import_tasks: 30-repos.yaml
+  when: get_repos | bool
