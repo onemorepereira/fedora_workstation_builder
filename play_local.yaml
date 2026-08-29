@@ -1,0 +1,7 @@
+---
+- name: Build a Fedora workstation (this machine)
+  hosts: localhost
+  connection: local
+  become: true
+  roles:
+    - fedora_workstation

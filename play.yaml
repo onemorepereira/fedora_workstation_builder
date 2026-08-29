@@ -1,0 +1,6 @@
+---
+- name: Build a Fedora workstation (remote host)
+  hosts: "{{ variable_host | default('all') }}"
+  become: true
+  roles:
+    - fedora_workstation

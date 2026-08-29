@@ -1,0 +1,31 @@
+---
+- name: Make sure repo folders are present
+  ansible.builtin.file:
+    path: "/home/{{ sys_user }}/Extra/repos/{{ item }}"
+    state: directory
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+    mode: "0755"
+  loop:
+    - personal
+    - third-party
+
+- name: Clone Git repos (SSH key-based)
+  ansible.builtin.git:
+    repo: "{{ item.value.repo }}"
+    dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
+    version: "{{ item.value.version | default('HEAD') }}"
+    key_file: "/home/{{ sys_user }}/.ssh/{{ default_identity_key_file }}"
+    accept_hostkey: true
+  loop: "{{ key_based_git_repos | default({}) | dict2items }}"
+  become: true
+  become_user: "{{ sys_user }}"
+
+- name: Clone Git repos (HTTPS-based)
+  ansible.builtin.git:
+    repo: "{{ item.value.repo }}"
+    dest: "/home/{{ sys_user }}/Extra/repos/{{ item.value.class }}/{{ item.key }}"
+    version: "{{ item.value.version | default('HEAD') }}"
+  loop: "{{ http_based_git_repos | default({}) | dict2items }}"
+  become: true
+  become_user: "{{ sys_user }}"

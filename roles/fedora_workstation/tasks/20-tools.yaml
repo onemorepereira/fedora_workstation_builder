@@ -1,0 +1,23 @@
+---
+- name: Make sure additional third-party packages are present
+  ansible.builtin.package:
+    name: "{{ dnf_extras }}"
+    state: present
+  when: dnf_extras | length > 0
+
+- name: Install archived binary tools
+  ansible.builtin.unarchive:
+    src: "{{ item.value }}"
+    dest: /usr/local/bin/
+    remote_src: true
+    mode: "0755"
+    creates: "/usr/local/bin/{{ item.key }}"
+  loop: "{{ binaries_remote_archived | default({}) | dict2items }}"
+
+- name: Install single-binary tools
+  ansible.builtin.get_url:
+    url: "{{ item.value.url }}"
+    checksum: "{{ item.value.checksum | default(omit) }}"
+    dest: "/usr/local/bin/{{ item.key }}"
+    mode: "0755"
+  loop: "{{ binaries_remote | default({}) | dict2items }}"

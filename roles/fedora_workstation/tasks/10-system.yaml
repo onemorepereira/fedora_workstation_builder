@@ -1,0 +1,71 @@
+---
+- name: Ensure the local system has a proper hostname
+  ansible.builtin.hostname:
+    name: "fedora-{{ 999999 | random }}"
+  when:
+    - "'fedora-' not in ansible_hostname"
+    # hostnamectl is unavailable inside containers (CI converge runs)
+    - ansible_virtualization_type | default('') not in ['container', 'docker', 'podman', 'containerd']
+
+- name: Add management public key to root and the system user
+  ansible.posix.authorized_key:
+    user: "{{ item }}"
+    key: "{{ public_key_value }}"
+  loop:
+    - root
+    - "{{ sys_user }}"
+  when: public_key_value is defined
+
+- name: Ensure the system user has an .ssh directory
+  ansible.builtin.file:
+    path: "/home/{{ sys_user }}/.ssh"
+    state: directory
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+    mode: "0700"
+
+- name: Deploy SSH key-pairs
+  ansible.builtin.copy:
+    content: "{{ item.value.key_value }}"
+    dest: "/home/{{ sys_user }}/.ssh/{{ item.value.key_name }}"
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+    mode: "0600"
+  no_log: true
+  loop: "{{ ssh_keypairs | default({}) | dict2items }}"
+
+- name: Update the system user ssh-config
+  ansible.builtin.template:
+    dest: "/home/{{ sys_user }}/.ssh/config"
+    src: ssh-config.j2
+    owner: "{{ sys_user }}"
+    group: "{{ sys_user }}"
+    mode: "0644"
+
+- name: Ensure extra RPM repos are present
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: /etc/yum.repos.d/
+    owner: root
+    group: root
+    mode: "0644"
+  with_fileglob: yum-repos/*.repo
+
+- name: Make sure base-system packages are up to date
+  ansible.builtin.package:
+    name: "*"
+    state: latest
+  register: system_update
+  when: basic_updates | bool
+
+- name: Reboot to pick up kernel and core updates
+  ansible.builtin.reboot:
+    reboot_timeout: 900
+  when:
+    - reboot | bool
+    - system_update is changed
+
+- name: Make sure baseline packages are installed
+  ansible.builtin.package:
+    name: "{{ dnf_basic }}"
+    state: present
